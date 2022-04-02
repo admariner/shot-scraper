@@ -14,19 +14,17 @@ def filename_for_url(url, ext=None, file_exists=file_exists_never):
     filename = (bits.netloc + bits.path).replace(".", "-").replace("/", "-").rstrip("-")
     # Remove any characters outside of the allowed range
     base_filename = disallowed_re.sub("", filename).lstrip("-")
-    filename = base_filename + "." + ext
+    filename = f'{base_filename}.{ext}'
     suffix = 0
     while file_exists(filename):
         suffix += 1
-        filename = "{}.{}.{}".format(base_filename, suffix, ext)
+        filename = f"{base_filename}.{suffix}.{ext}"
     return filename
 
 
 def url_or_file_path(url, file_exists=file_exists_never):
-    # If url exists as a file, convert that to file:/
-    file_path = file_exists(url)
-    if file_path:
-        return "file:{}".format(file_path)
+    if file_path := file_exists(url):
+        return f"file:{file_path}"
     if not (url.startswith("http://") or url.startswith("https://")):
-        return "http://{}".format(url)
+        return f"http://{url}"
     return url
