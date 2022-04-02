@@ -270,9 +270,8 @@ def multi(config, auth, retina, timeout, fail_on_error, browser):
             except TimeoutError as e:
                 if fail_on_error:
                     raise click.ClickException(str(e))
-                else:
-                    click.echo(str(e), err=True)
-                    continue
+                click.echo(str(e), err=True)
+                continue
         browser_obj.close()
 
 
@@ -434,9 +433,7 @@ def pdf(url, auth, output, javascript, wait, media_screen, landscape):
         if output == "-":
             sys.stdout.buffer.write(pdf)
         else:
-            click.echo(
-                "Screenshot of '{}' written to '{}'".format(url, output), err=True
-            )
+            click.echo(f"Screenshot of '{url}' written to '{output}'", err=True)
 
         browser_obj.close()
 
@@ -533,11 +530,7 @@ def take_shot(
     if shot.get("selector"):
         selectors.append(shot["selector"])
 
-    if not use_existing_page:
-        page = context_or_page.new_page()
-    else:
-        page = context_or_page
-
+    page = context_or_page if use_existing_page else context_or_page.new_page()
     viewport = {}
     full_page = True
     if shot.get("width") or shot.get("height"):
@@ -553,8 +546,7 @@ def take_shot(
 
     if wait:
         time.sleep(wait / 1000)
-    javascript = shot.get("javascript")
-    if javascript:
+    if javascript := shot.get("javascript"):
         _evaluate_js(page, javascript)
 
     screenshot_args = {}
@@ -574,23 +566,19 @@ def take_shot(
         _evaluate_js(page, selector_javascript)
         if return_bytes:
             return page.locator(selector_to_shoot).screenshot(**screenshot_args)
-        else:
-            page.locator(selector_to_shoot).screenshot(**screenshot_args)
-            message = "Screenshot of '{}' on '{}' written to '{}'".format(
-                ", ".join(selectors), url, output
-            )
+        page.locator(selector_to_shoot).screenshot(**screenshot_args)
+        message = f"""Screenshot of '{", ".join(selectors)}' on '{url}' written to '{output}'"""
+
     else:
-        # Whole page
         if return_bytes:
             return page.screenshot(**screenshot_args)
-        else:
-            page.screenshot(**screenshot_args)
-            message = "Screenshot of '{}' written to '{}'".format(url, output)
+        page.screenshot(**screenshot_args)
+        message = f"Screenshot of '{url}' written to '{output}'"
     click.echo(message, err=True)
 
 
 def _selector_javascript(selectors, padding=0):
-    selector_to_shoot = "shot-scraper-{}".format(secrets.token_hex(8))
+    selector_to_shoot = f"shot-scraper-{secrets.token_hex(8)}"
     selector_javascript = textwrap.dedent(
         """
     new Promise(takeShot => {
@@ -640,7 +628,7 @@ def _selector_javascript(selectors, padding=0):
     """
         % (padding, json.dumps(selectors), json.dumps(selector_to_shoot))
     )
-    return selector_javascript, "#" + selector_to_shoot
+    return selector_javascript, f"#{selector_to_shoot}"
 
 
 def _evaluate_js(page, javascript):
